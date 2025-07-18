@@ -26,20 +26,3 @@ The code base—**CaRTed**—unifies PARAFAC2 tensor decomposition with causal�
 
 The **CaRTed** demos directory includes example implementations of our methods, demonstrating how to use the packages and apply the methodology.  
 
----
-
-## Citation
-
-```bibtex
-@misc{carted2024,
-  title   = {Toward Temporal Causal Representation Learning with Tensor Decomposition},
-  author  = {Chen, Jianhong and Ma, Ying and Yue, Xubo},
-  year    = {2024},
-  eprint  = {arXiv:2412.09814},
-  archivePrefix = {arXiv}
-}
-```
-
----
-
-Feel free to open an issue or pull request if you encounter problems or have suggestions.
