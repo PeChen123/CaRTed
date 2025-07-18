@@ -7,7 +7,7 @@ from package.Causal_block import Causal_Updated, opt_boundary
 from package.Metric import shift_matrix
 
 
-def CD_par(X_list, Rank, p, W = None, A_list = None, lambda_w = 0.5, lambda_a = 0.5, w_threshold = 0.3, a_threshold = 0.1, V = None, max_iter=5):
+def CaRTeD(X_list, Rank, p, W = None, A_list = None, lambda_w = 0.5, lambda_a = 0.5, w_threshold = 0.3, a_threshold = 0.1, V = None, max_iter=5):
 
     weight = 6
     J, K = X_list[0].shape[1], len(X_list)
