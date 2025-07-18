@@ -4,7 +4,7 @@ import scipy.optimize as sopt
 import warnings
 from typing import Dict, List, Tuple
 
-def Fed_DBN(X, Y, bnds, lambda_w, lambda_a, max_iter=100, h_tol=1e-8, rho_max=1e16, w_threshold=0.3, a_threshold=0.3):
+def Causal_Updated(X, Y, bnds, lambda_w, lambda_a, max_iter=100, h_tol=1e-8, rho_max=1e16, w_threshold=0.3, a_threshold=0.3):
     
     def _adj(w):
         """Convert the parameter vector back to original intra- and inter-slice matrices."""
