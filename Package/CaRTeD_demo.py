@@ -2,7 +2,7 @@ import numpy as np
 
 from package.Tensor_block import _V, U_k_block, S_k_block
 from package.utils import compute_FIT
-from package.Causal_block import Fed_DBN,opt_boundary
+from package.Causal_block import Causal_Updated,opt_boundary
 
 from package.Metric import shift_matrix
 
