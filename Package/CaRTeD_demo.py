@@ -1,13 +1,36 @@
 import numpy as np
 
-from package.Tensor_V3 import _V, U_k_block, S_k_block
+from package.Tensor_block import _V, U_k_block, S_k_block
 from package.utils import compute_FIT
-from package.Causal_block import Causal_Updated, opt_boundary
+from package.Causal_block import Fed_DBN,opt_boundary
 
 from package.Metric import shift_matrix
 
+class Ragged:
+    """Per-patient arrays with different row counts, shaped for Fed_DBN.
 
-def CaRTeD(X_list, Rank, p, W = None, A_list = None, lambda_w = 0.5, lambda_a = 0.5, w_threshold = 0.3, a_threshold = 0.1, V = None, max_iter=5):
+    Fed_DBN only reads X.shape -> (K, _, d) and X[k]; each local subproblem
+    normalises by its own row count, so no patient has to be truncated.
+    """
+    def __init__(self, arrays):
+        self.arrays = list(arrays)
+        self.shape = (len(self.arrays), None, self.arrays[0].shape[1])
+
+    def __getitem__(self, k):
+        return self.arrays[k]
+
+
+def causal_inputs_full(Uk, Sk, p):
+    """X_k = U_k S_k and its p lags, each on the patient's own I_k rows."""
+    X, Y = [], []
+    for U, S in zip(Uk, Sk):
+        pre = U @ S
+        X.append(pre)
+        Y.append(np.hstack([shift_matrix(pre.shape[0], i + 1) @ pre for i in range(p)]))
+    return Ragged(X), Ragged(Y)
+
+
+def CD_par(X_list, Rank, p, W = None, A_list = None, lambda_w = 0.5, lambda_a = 0.5, w_threshold = 0.3, a_threshold = 0.1, V = None, max_iter=5):
 
     weight = 6
     J, K = X_list[0].shape[1], len(X_list)
@@ -91,27 +114,11 @@ def CaRTeD(X_list, Rank, p, W = None, A_list = None, lambda_w = 0.5, lambda_a = 
 
         V = V_new
         
-        X = []
-        Y = []
-        min_meeting = min([X.shape[0] for X in X_list])
-        for k in range(K):
-            pre = Uk[k] @ Sk[k]
-            pre = pre[:min_meeting, :]
-            lagged_features = []
-            for i in range(p):
-                Mi = shift_matrix(min_meeting, i + 1) 
-                lagged_pre = Mi @ pre 
-                lagged_features.append(lagged_pre)
-            Y_k = np.hstack(lagged_features) 
-            Y.append(Y_k)
-            X.append(pre)
-            
-        X = np.array(X, dtype=np.float64)
-        Y = np.array(Y, dtype=np.float64)
-        d = X.shape[2]
-        bnds = opt_boundary(X[0], Y[0], d)
-        W_new, A_new = Fed_DBN(X, Y, bnds, lambda_w=lambda_w, lambda_a=lambda_a, w_threshold=w_threshold, a_threshold=a_threshold)
+        X, Y = causal_inputs_full(Uk, Sk, p)
+        bnds = opt_boundary(X[0], Y[0], X.shape[2])
+        W_new, A_list_new = Fed_DBN(X, Y, bnds, lambda_w=lambda_w, lambda_a=lambda_a,
+                            w_threshold=w_threshold, a_threshold=a_threshold)
         W = W_new
-        A_list = A_new
+        A_list= A_list_new
 
     return Uk, Sk, V, W, A_list
